@@ -3,6 +3,9 @@ package ru.job4j.grabber.service;
 import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import ru.job4j.grabber.model.Post;
+import ru.job4j.grabber.utils.DateTimeParser;
+import ru.job4j.grabber.utils.HabrCareerDateTimeParser;
+
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.OffsetDateTime;
@@ -32,11 +35,11 @@ public class HabrCareerParse implements Parse {
                 var timeTag = dateElement.select("time").first();
                 String vacancyName = titleElement.text();
                 String link = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
-                System.out.printf("%s %s%n", vacancyName, link);
                 String datetime = timeTag.attr("datetime");
-                var formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-                var localDateTime = OffsetDateTime.parse(datetime, formatter).toLocalDateTime();
+                DateTimeParser parser = new HabrCareerDateTimeParser();
+                var localDateTime = parser.parse(datetime);
                 long timeMillis = Timestamp.valueOf(localDateTime).getTime();
+                System.out.printf("%s %s %s%n", vacancyName, link, localDateTime);
                 var post = new Post();
                 post.setTitle(vacancyName);
                 post.setLink(link);
