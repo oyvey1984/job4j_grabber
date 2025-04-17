@@ -38,7 +38,7 @@ public class JdbcStore implements Store {
     @Override
     public List<Post> getAll() {
         List<Post> posts = new ArrayList<>();
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM items")) {
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM post")) {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
                     posts.add(createPost(resultSet));
@@ -54,7 +54,7 @@ public class JdbcStore implements Store {
     public Optional<Post> findById(Long id) {
         Post post = null;
         try (PreparedStatement preparedStatement = connection.prepareStatement(
-                "SELECT * FROM items WHERE id = ?")) {
+                "SELECT * FROM post WHERE id = ?")) {
             preparedStatement.setLong(1, id);
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
@@ -68,12 +68,15 @@ public class JdbcStore implements Store {
     }
 
     private Post createPost(ResultSet resultSet) throws SQLException {
+        Timestamp timestamp = resultSet.getTimestamp("time");
+        long epochMillis = timestamp != null ? timestamp.getTime() : 0L;
         return new Post(
                 resultSet.getInt("id"),
                 resultSet.getString("title"),
                 resultSet.getString("link"),
                 resultSet.getString("description"),
-                resultSet.getLong("time")
+                epochMillis
         );
     }
+
 }
