@@ -8,8 +8,6 @@ import ru.job4j.grabber.utils.HabrCareerDateTimeParser;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,36 +16,39 @@ public class HabrCareerParse implements Parse {
     private static final String SOURCE_LINK = "https://career.habr.com";
     private static final String PREFIX = "/vacancies?page=";
     private static final String SUFFIX = "&q=Java%20developer&type=all";
+    private static final int PAGES = 5;
+
 
     @Override
     public List<Post> fetch() {
         var result = new ArrayList<Post>();
-        try {
-            int pageNumber = 1;
-            String fullLink = "%s%s%d%s".formatted(SOURCE_LINK, PREFIX, pageNumber, SUFFIX);
-            var connection = Jsoup.connect(fullLink);
-            var document = connection.get();
-            var rows = document.select(".vacancy-card__inner");
-            rows.forEach(row -> {
-                var titleElement = row.select(".vacancy-card__title").first();
-                var linkElement = titleElement.child(0);
-                var dateElement = row.select(".vacancy-card__date").first();
-                var timeTag = dateElement.select("time").first();
-                String vacancyName = titleElement.text();
-                String link = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
-                String datetime = timeTag.attr("datetime");
-                DateTimeParser parser = new HabrCareerDateTimeParser();
-                var localDateTime = parser.parse(datetime);
-                long timeMillis = Timestamp.valueOf(localDateTime).getTime();
-                System.out.printf("%s %s %s%n", vacancyName, link, localDateTime);
-                var post = new Post();
-                post.setTitle(vacancyName);
-                post.setLink(link);
-                post.setTime(timeMillis);
-                result.add(post);
-            });
-        } catch (IOException e) {
-            LOG.error("When load page", e);
+        DateTimeParser parser = new HabrCareerDateTimeParser();
+        for (int i = 0; i < PAGES; i++) {
+            try {
+                String fullLink = "%s%s%d%s".formatted(SOURCE_LINK, PREFIX, i, SUFFIX);
+                var connection = Jsoup.connect(fullLink);
+                var document = connection.get();
+                var rows = document.select(".vacancy-card__inner");
+                rows.forEach(row -> {
+                    var titleElement = row.select(".vacancy-card__title").first();
+                    var linkElement = titleElement.child(0);
+                    var dateElement = row.select(".vacancy-card__date").first();
+                    var timeTag = dateElement.select("time").first();
+                    String vacancyName = titleElement.text();
+                    String link = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
+                    String datetime = timeTag.attr("datetime");
+                    var localDateTime = parser.parse(datetime);
+                    long timeMillis = Timestamp.valueOf(localDateTime).getTime();
+                    System.out.printf("%s %s %s%n", vacancyName, link, localDateTime);
+                    var post = new Post();
+                    post.setTitle(vacancyName);
+                    post.setLink(link);
+                    post.setTime(timeMillis);
+                    result.add(post);
+                });
+            } catch (IOException e) {
+                LOG.error("When load page", e);
+            }
         }
         return result;
     }
