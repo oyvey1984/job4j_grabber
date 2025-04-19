@@ -3,7 +3,6 @@ package ru.job4j;
 import org.apache.log4j.Logger;
 import ru.job4j.grabber.model.Post;
 import ru.job4j.grabber.service.Config;
-import ru.job4j.grabber.service.HabrCareerParse;
 import ru.job4j.grabber.service.SchedulerManager;
 import ru.job4j.grabber.service.SuperJobGrab;
 import ru.job4j.grabber.stores.JdbcStore;

@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import ru.job4j.grabber.model.Post;
 import ru.job4j.grabber.utils.DateTimeParser;
-import ru.job4j.grabber.utils.HabrCareerDateTimeParser;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -16,7 +15,11 @@ public class HabrCareerParse implements Parse {
     private static final String PREFIX = "/vacancies?page=";
     private static final String SUFFIX = "&q=Java%20developer&type=all";
     private static final int PAGES = 5;
-    private final DateTimeParser parser = new HabrCareerDateTimeParser();
+    private final DateTimeParser dateTimeParser;
+
+    public HabrCareerParse(DateTimeParser dateTimeParser) {
+        this.dateTimeParser = dateTimeParser;
+    }
 
     @Override
     public List<Post> fetch() {
@@ -36,15 +39,7 @@ public class HabrCareerParse implements Parse {
                     String link = String.format("%s%s", SOURCE_LINK, linkElement.attr("href"));
                     String datetime = timeTag.attr("datetime");
                     String descriptionText = retrieveDescription(link);
-                    try {
-                        var connectionToLink = Jsoup.connect(link);
-                        var documentLink = connectionToLink.get();
-                        var descriptionElement = documentLink.select(".vacancy-description__text");
-                        descriptionText = descriptionElement.text();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    var localDateTime = parser.parse(datetime);
+                    var localDateTime = dateTimeParser.parse(datetime);
                     long timeMillis = Timestamp.valueOf(localDateTime).getTime();
                     System.out.printf("%s %s %s %s%n", vacancyName, link, localDateTime, descriptionText);
                     var post = new Post();
