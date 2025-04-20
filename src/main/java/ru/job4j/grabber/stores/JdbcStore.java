@@ -78,5 +78,4 @@ public class JdbcStore implements Store {
                 epochMillis
         );
     }
-
 }
