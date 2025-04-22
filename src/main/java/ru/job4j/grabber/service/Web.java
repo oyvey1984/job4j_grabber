@@ -15,6 +15,9 @@ public class Web {
         app.start(port);
         var page = new StringBuilder();
         store.getAll().forEach(post -> page.append(post.toString()).append(System.lineSeparator()));
-        app.get("/", ctx -> ctx.result(page.toString()));
+        app.get("/", ctx -> {
+            ctx.contentType("text/plain; charset=UTF-8");
+            ctx.result(page.toString());
+        });
     }
 }

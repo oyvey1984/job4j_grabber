@@ -86,7 +86,8 @@ public class Post {
                 + "id=" + id
                 + ", title='" + title + '\''
                 + ", link='" + link + '\''
-                + ", time=" + getLocalDateTime()
+                + ", time='" + getLocalDateTime()  + '\''
+                + ", description='" + description + '\''
                 + '}';
     }
 }
